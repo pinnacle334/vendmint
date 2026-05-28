@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bgColor: #F9FAFB;
+  --primary: #E50914;
+}
+
+.dark {
+  --bgColor: #171717;
+  --primary: #E50914;
+}
