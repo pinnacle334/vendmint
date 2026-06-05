@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
@@ -29,17 +31,19 @@ export default function Input({
 
             <input
                 id={inputId}
-                className={`
-          w-full px-4 py-2.5 rounded-lg text-sm
-          bg-[--color-surface] text-[--color-text]
-          border border-[--color-border]
-          placeholder:text-[--color-muted]
-          outline-none transition-all duration-200
-          focus:border-[--color-primary] focus:ring-2 focus:ring-[--color-primary]/20
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${error ? "border-[--color-error] focus:border-[--color-error] focus:ring-[--color-error]/20" : ""}
-          ${className}
-        `}
+                // NOTE: We use cn here to conditionally apply error styles and to allow for additional custom styles via the className prop without conflicts.
+                className={cn(
+                    "w-full px-4 py-2.5 rounded-lg text-sm",
+                    "bg-[--color-surface] text-[--color-text]",
+                    "border border-[--color-border]",
+                    "placeholder:text-[--color-muted]",
+                    "outline-none transition-all duration-200",
+                    "focus:border-[--color-primary] focus:ring-2 focus:ring-[--color-primary]/20",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    error &&
+                        "border-[--color-error] focus:border-[--color-error] focus:ring-[--color-error]/20",
+                    className,
+                )}
                 {...props}
             />
 

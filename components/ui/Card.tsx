@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 interface CardProps {
     children: React.ReactNode;
     className?: string;
@@ -23,14 +25,16 @@ export default function Card({
     return (
         <div
             onClick={onClick}
-            className={`
-        bg-[--color-surface] rounded-xl
-        border border-[--color-border]
-        shadow-sm
-        ${paddingStyles[padding]}
-        ${hoverable ? "cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[--color-primary]" : ""}
-        ${className}
-      `}
+            // NOTE: We use cn here to conditionally apply hover styles and padding based on props and to allow for additional custom styles via the className prop without conflicts.
+            className={cn(
+                "bg-[--color-surface] rounded-xl",
+                "border border-[--color-border]",
+                "shadow-sm",
+                paddingStyles[padding],
+                hoverable &&
+                    "cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[--color-primary]",
+                className,
+            )}
         >
             {children}
         </div>
