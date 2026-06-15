@@ -57,15 +57,15 @@ export default function Sidebar(): React.ReactElement {
             className={cn(
                 "hidden md:flex flex-col",
                 "w-60 min-h-screen",
-                "bg-[--color-surface]",
-                "border-r border-[--color-border]",
+                "bg-surface",
+                "border-r border-border",
                 "px-3 py-6",
             )}
         >
             {/* Logo */}
             <Link
                 href="/dashboard"
-                className="text-xl font-bold text-[--color-primary] px-3 mb-8"
+                className="text-xl font-bold text-primary px-3 mb-8"
             >
                 Vendmint
             </Link>
@@ -88,8 +88,8 @@ export default function Sidebar(): React.ReactElement {
                                 "rounded-lg text-sm font-medium",
                                 "transition-all duration-200",
                                 isActive
-                                    ? "bg-[--color-primary] text-white"
-                                    : "text-[--color-muted] hover:bg-[--color-border] hover:text-[--color-text]",
+                                    ? "bg-primary text-white"
+                                    : "text-muted hover:bg-border hover:text-text",
                             )}
                         >
                             {item.icon}
@@ -106,8 +106,8 @@ export default function Sidebar(): React.ReactElement {
                 className={cn(
                     "flex items-center gap-3 px-3 py-2.5",
                     "rounded-lg text-sm font-medium",
-                    "text-[--color-error]",
-                    "hover:bg-[--color-error]/10",
+                    "text-error",
+                    "hover:bg-error/10",
                     "transition-all duration-200 cursor-pointer",
                     "w-full",
                 )}

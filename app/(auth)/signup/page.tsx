@@ -70,24 +70,21 @@ export default function SignupPage(): React.ReactElement {
         <div
             className={cn(
                 "w-full max-w-md",
-                "bg-[--color-surface]",
+                "bg-surface",
                 "rounded-2xl shadow-sm",
-                "border border-[--color-border]",
+                "border border-border",
                 "p-8",
             )}
         >
             {/* Header */}
             <div className="mb-8">
-                <Link
-                    href="/"
-                    className="text-xl font-bold text-[--color-primary]"
-                >
+                <Link href="/" className="text-xl font-bold text-primary">
                     Vendmint
                 </Link>
-                <h1 className="text-2xl font-bold text-[--color-text] mt-4">
+                <h1 className="text-2xl font-bold text-text mt-4">
                     Create your account
                 </h1>
-                <p className="text-sm text-[--color-muted] mt-1">
+                <p className="text-sm text-muted mt-1">
                     Start selling online in minutes
                 </p>
             </div>
@@ -124,9 +121,7 @@ export default function SignupPage(): React.ReactElement {
                 />
 
                 {/* NOTE: Error message shown when signup fails */}
-                {error && (
-                    <p className="text-sm text-[--color-error]">{error}</p>
-                )}
+                {error && <p className="text-sm text-error">{error}</p>}
 
                 <Button
                     type="submit"
@@ -139,11 +134,11 @@ export default function SignupPage(): React.ReactElement {
             </form>
 
             {/* Footer link */}
-            <p className="text-sm text-[--color-muted] text-center mt-6">
+            <p className="text-sm text-muted text-center mt-6">
                 Already have an account?{" "}
                 <Link
                     href="/login"
-                    className="text-[--color-primary] font-medium hover:underline"
+                    className="text-primary font-medium hover:underline"
                 >
                     Login
                 </Link>

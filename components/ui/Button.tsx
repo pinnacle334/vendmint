@@ -15,13 +15,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 // This defines the styles for each button variant, using Tailwind CSS classes.
 const variantStyles: Record<ButtonVariant, string> = {
-    primary: "bg-[--color-primary] hover:bg-[--color-primary-dark] text-white",
-    secondary:
-        "bg-[--color-surface] hover:bg-[--color-border] text-[--color-text]",
+    primary: "bg-primary hover:bg-primary-dark text-white",
+    secondary: "bg-surface hover:bg-border text-text",
     outline:
-        "border border-[--color-primary] text-[--color-primary] hover:bg-[--color-primary] hover:text-white",
-    ghost: "text-[--color-text] hover:bg-[--color-border]",
-    danger: "bg-[--color-error] hover:opacity-90 text-white",
+        "border border-primary text-primary hover:bg-primary hover:text-white",
+    ghost: "text-text hover:bg-border",
+    danger: "bg-error hover:opacity-90 text-white",
 };
 
 // This defines the styles for each button size, using Tailwind CSS classes.

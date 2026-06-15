@@ -1,8 +1,4 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: false;
-  base: false;
-};
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -18,7 +14,7 @@
   --color-error: #EF4444;
   --color-success: #10B981;
 }
-
+/*
 :root {
   --color-primary: #0D9E6E;
   --color-primary-dark: #0A7D57;
@@ -30,7 +26,7 @@
   --color-border: #E5E7EB;
   --color-error: #EF4444;
   --color-success: #10B981;
-}
+} */
 
 .dark {
   --color-primary: #10B981;

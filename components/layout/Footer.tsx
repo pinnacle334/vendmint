@@ -23,8 +23,8 @@ export default function Footer(): React.ReactElement {
     return (
         <footer
             className={cn(
-                "w-full bg-[--color-surface]",
-                "border-t border-[--color-border]",
+                "w-full bg-surface",
+                "border-t border-border",
                 "mt-auto",
             )}
         >
@@ -35,11 +35,11 @@ export default function Footer(): React.ReactElement {
                     <div className="col-span-2 md:col-span-1 flex flex-col gap-3">
                         <Link
                             href="/"
-                            className="text-xl font-bold text-[--color-primary]"
+                            className="text-xl font-bold text-primary"
                         >
                             Vendmint
                         </Link>
-                        <p className="text-sm text-[--color-muted] max-w-xs">
+                        <p className="text-sm text-muted max-w-xs">
                             The simplest way for small businesses to sell online
                             and get paid — built for Nigeria.
                         </p>
@@ -47,7 +47,7 @@ export default function Footer(): React.ReactElement {
 
                     {/* Product links */}
                     <div className="flex flex-col gap-3">
-                        <h4 className="text-sm font-semibold text-[--color-text]">
+                        <h4 className="text-sm font-semibold text-text">
                             Product
                         </h4>
                         <ul className="flex flex-col gap-2">
@@ -56,8 +56,8 @@ export default function Footer(): React.ReactElement {
                                     <Link
                                         href={link.href}
                                         className={cn(
-                                            "text-sm text-[--color-muted]",
-                                            "hover:text-[--color-text] transition-colors duration-200",
+                                            "text-sm text-muted",
+                                            "hover:text-text transition-colors duration-200",
                                         )}
                                     >
                                         {link.label}
@@ -69,7 +69,7 @@ export default function Footer(): React.ReactElement {
 
                     {/* Company links */}
                     <div className="flex flex-col gap-3">
-                        <h4 className="text-sm font-semibold text-[--color-text]">
+                        <h4 className="text-sm font-semibold text-text">
                             Company
                         </h4>
                         <ul className="flex flex-col gap-2">
@@ -78,8 +78,8 @@ export default function Footer(): React.ReactElement {
                                     <Link
                                         href={link.href}
                                         className={cn(
-                                            "text-sm text-[--color-muted]",
-                                            "hover:text-[--color-text] transition-colors duration-200",
+                                            "text-sm text-muted",
+                                            "hover:text-text transition-colors duration-200",
                                         )}
                                     >
                                         {link.label}
@@ -91,7 +91,7 @@ export default function Footer(): React.ReactElement {
 
                     {/* Legal links */}
                     <div className="flex flex-col gap-3">
-                        <h4 className="text-sm font-semibold text-[--color-text]">
+                        <h4 className="text-sm font-semibold text-text">
                             Legal
                         </h4>
                         <ul className="flex flex-col gap-2">
@@ -100,8 +100,8 @@ export default function Footer(): React.ReactElement {
                                     <Link
                                         href={link.href}
                                         className={cn(
-                                            "text-sm text-[--color-muted]",
-                                            "hover:text-[--color-text] transition-colors duration-200",
+                                            "text-sm text-muted",
+                                            "hover:text-text transition-colors duration-200",
                                         )}
                                     >
                                         {link.label}
@@ -117,14 +117,14 @@ export default function Footer(): React.ReactElement {
                     className={cn(
                         "flex flex-col md:flex-row items-center",
                         "justify-between gap-4 mt-12 pt-6",
-                        "border-t border-[--color-border]",
+                        "border-t border-border",
                     )}
                 >
-                    <p className="text-xs text-[--color-muted]">
+                    <p className="text-xs text-muted">
                         © {new Date().getFullYear()} Vendmint. All rights
                         reserved.
                     </p>
-                    <p className="text-xs text-[--color-muted]">
+                    <p className="text-xs text-muted">
                         Built with ❤️ for Nigerian businesses
                     </p>
                 </div>

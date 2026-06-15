@@ -12,8 +12,8 @@ export default function Navbar(): React.ReactElement {
     return (
         <header
             className={cn(
-                "w-full bg-[--color-surface]",
-                "border-b border-[--color-border]",
+                "w-full bg-surface",
+                "border-b border-border",
                 "sticky top-0 z-40",
             )}
         >
@@ -24,10 +24,7 @@ export default function Navbar(): React.ReactElement {
                 )}
             >
                 {/* Logo */}
-                <Link
-                    href="/"
-                    className="text-xl font-bold text-[--color-primary]"
-                >
+                <Link href="/" className="text-xl font-bold text-primary">
                     Vendmint
                 </Link>
 
@@ -36,8 +33,8 @@ export default function Navbar(): React.ReactElement {
                     <Link
                         href="#features"
                         className={cn(
-                            "text-sm text-[--color-muted]",
-                            "hover:text-[--color-text] transition-colors duration-200",
+                            "text-sm text-muted",
+                            "hover:text-text transition-colors duration-200",
                         )}
                     >
                         Features
@@ -45,8 +42,8 @@ export default function Navbar(): React.ReactElement {
                     <Link
                         href="#pricing"
                         className={cn(
-                            "text-sm text-[--color-muted]",
-                            "hover:text-[--color-text] transition-colors duration-200",
+                            "text-sm text-muted",
+                            "hover:text-text transition-colors duration-200",
                         )}
                     >
                         Pricing
@@ -54,8 +51,8 @@ export default function Navbar(): React.ReactElement {
                     <Link
                         href="#about"
                         className={cn(
-                            "text-sm text-[--color-muted]",
-                            "hover:text-[--color-text] transition-colors duration-200",
+                            "text-sm text-muted",
+                            "hover:text-text transition-colors duration-200",
                         )}
                     >
                         About
@@ -119,15 +116,15 @@ export default function Navbar(): React.ReactElement {
                 <nav
                     className={cn(
                         "flex flex-col gap-1 px-4 pb-4",
-                        "border-t border-[--color-border]",
+                        "border-t border-border",
                     )}
                 >
                     <Link
                         href="#features"
                         onClick={() => setIsMenuOpen(false)}
                         className={cn(
-                            "text-sm text-[--color-muted] py-2",
-                            "hover:text-[--color-text] transition-colors duration-200",
+                            "text-sm text-muted py-2",
+                            "hover:text-text transition-colors duration-200",
                         )}
                     >
                         Features
@@ -136,8 +133,8 @@ export default function Navbar(): React.ReactElement {
                         href="#pricing"
                         onClick={() => setIsMenuOpen(false)}
                         className={cn(
-                            "text-sm text-[--color-muted] py-2",
-                            "hover:text-[--color-text] transition-colors duration-200",
+                            "text-sm text-muted py-2",
+                            "hover:text-text transition-colors duration-200",
                         )}
                     >
                         Pricing
@@ -146,8 +143,8 @@ export default function Navbar(): React.ReactElement {
                         href="#about"
                         onClick={() => setIsMenuOpen(false)}
                         className={cn(
-                            "text-sm text-[--color-muted] py-2",
-                            "hover:text-[--color-text] transition-colors duration-200",
+                            "text-sm text-muted py-2",
+                            "hover:text-text transition-colors duration-200",
                         )}
                     >
                         About

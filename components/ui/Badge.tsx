@@ -12,11 +12,11 @@ interface BadgeProps {
 
 // This defines the styles for each badge variant
 const variantStyles: Record<BadgeVariant, string> = {
-    default: "bg-[--color-border] text-[--color-text]",
-    success: "bg-[--color-success]/10 text-[--color-success]",
-    warning: "bg-[--color-accent]/10 text-[--color-accent]",
-    error: "bg-[--color-error]/10 text-[--color-error]",
-    info: "bg-[--color-primary]/10 text-[--color-primary]",
+    default: "bg-border text-text",
+    success: "bg-success/10 text-success",
+    warning: "bg-accent/10 text-accent",
+    error: "bg-error/10 text-error",
+    info: "bg-primary/10 text-primary",
 };
 
 export default function Badge({

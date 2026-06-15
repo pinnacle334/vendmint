@@ -52,11 +52,11 @@ export default function LoginPage(): React.ReactElement {
     return (
         <div className="w-full max-w-md">
             {/* Top accent bar */}
-            <div className="h-1.5 w-full bg-linear-to-r from-[--color-primary] to-[--color-accent] rounded-t-2xl" />
+            <div className="h-1.5 w-full bg-linear-to-r from-bg-primary to-[--color-accent] rounded-t-2xl" />
 
             <div
                 className={cn(
-                    "w-full bg-[--color-surface]",
+                    "w-full bg-surface",
                     "rounded-b-2xl shadow-sm",
                     "px-8 py-10",
                 )}
@@ -67,21 +67,21 @@ export default function LoginPage(): React.ReactElement {
                         href="/"
                         className="text-2xl font-black tracking-tight"
                     >
-                        <span className="text-[--color-primary]">Vend</span>
-                        <span className="text-[--color-accent]">mint</span>
+                        <span className="text-primary">Vend</span>
+                        <span className="text-accent">mint</span>
                     </Link>
 
                     {/* Decorative dot */}
                     <div className="flex items-center gap-1.5 mt-4">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[--color-accent]" />
-                        <div className="w-6 h-1.5 rounded-full bg-[--color-primary]" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-[--color-accent]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                        <div className="w-6 h-1.5 rounded-full bg-primary" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent" />
                     </div>
 
-                    <h1 className="text-2xl font-bold text-[--color-text] mt-4">
+                    <h1 className="text-2xl font-bold text-text mt-4">
                         Welcome back 👋
                     </h1>
-                    <p className="text-sm text-[--color-muted] mt-1">
+                    <p className="text-sm text-muted mt-1">
                         Login to manage your store
                     </p>
                 </div>
@@ -108,8 +108,8 @@ export default function LoginPage(): React.ReactElement {
                         <Link
                             href="/forgot-password"
                             className={cn(
-                                "text-xs text-[--color-muted]",
-                                "hover:text-[--color-primary] transition-colors duration-200",
+                                "text-xs text-muted",
+                                "hover:text-primary transition-colors duration-200",
                             )}
                         >
                             Forgot password?
@@ -117,9 +117,7 @@ export default function LoginPage(): React.ReactElement {
                     </div>
 
                     {/* Error message */}
-                    {error && (
-                        <p className="text-sm text-[--color-error]">{error}</p>
-                    )}
+                    {error && <p className="text-sm text-error">{error}</p>}
 
                     <Button
                         type="submit"
@@ -133,19 +131,19 @@ export default function LoginPage(): React.ReactElement {
 
                 {/* Divider */}
                 <div className="flex items-center gap-3 my-6">
-                    <div className="flex-1 h-px bg-[--color-border]" />
-                    <span className="text-xs text-[--color-muted]">or</span>
-                    <div className="flex-1 h-px bg-[--color-border]" />
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs text-muted">or</span>
+                    <div className="flex-1 h-px bg-border" />
                 </div>
 
                 {/* Footer link */}
-                <p className="text-sm text-[--color-muted] text-center">
+                <p className="text-sm text-muted text-center">
                     Don't have an account?{" "}
                     <Link
                         href="/signup"
                         className={cn(
-                            "text-[--color-primary] font-semibold",
-                            "hover:text-[--color-accent] transition-colors duration-200",
+                            "text-primary font-semibold",
+                            "hover:text-accent transition-colors duration-200",
                         )}
                     >
                         Create one free →

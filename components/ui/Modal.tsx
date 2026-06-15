@@ -83,7 +83,7 @@ export default function Modal({
                 // the modal when clicking inside the modal card itself
                 onClick={(e) => e.stopPropagation()}
                 className={cn(
-                    "relative w-full bg-[--color-surface]",
+                    "relative w-full bg-surface",
                     "rounded-2xl shadow-xl",
                     "flex flex-col",
                     sizeStyles[size],
@@ -95,17 +95,17 @@ export default function Modal({
                     <div
                         className={cn(
                             "flex items-center justify-between",
-                            "px-6 py-4 border-b border-[--color-border]",
+                            "px-6 py-4 border-b border-border",
                         )}
                     >
-                        <h2 className="text-base font-semibold text-[--color-text]">
+                        <h2 className="text-base font-semibold text-text">
                             {title}
                         </h2>
                         {/* Close button */}
                         <button
                             onClick={onClose}
                             className={cn(
-                                "text-[--color-muted] hover:text-[--color-text]",
+                                "text-muted hover:text-text",
                                 "transition-colors duration-200 cursor-pointer",
                             )}
                         >
