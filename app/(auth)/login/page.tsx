@@ -50,86 +50,108 @@ export default function LoginPage(): React.ReactElement {
     };
 
     return (
-        <div
-            className={cn(
-                "w-full max-w-md",
-                "bg-[--color-surface]",
-                "rounded-2xl shadow-sm",
-                "border border-[--color-border]",
-                "p-8",
-            )}
-        >
-            {/* Header */}
-            <div className="mb-8">
-                <Link
-                    href="/"
-                    className="text-xl font-bold text-[--color-primary]"
-                >
-                    Vendmint
-                </Link>
-                <h1 className="text-2xl font-bold text-[--color-text] mt-4">
-                    Welcome back
-                </h1>
-                <p className="text-sm text-[--color-muted] mt-1">
-                    Login to manage your store
-                </p>
-            </div>
+        <div className="w-full max-w-md">
+            {/* Top accent bar */}
+            <div className="h-1.5 w-full bg-linear-to-r from-[--color-primary] to-[--color-accent] rounded-t-2xl" />
 
-            {/* Form */}
-            <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                <Input
-                    label="Email Address"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <Input
-                    label="Password"
-                    type="password"
-                    placeholder="Your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-
-                {/* Forgot password link */}
-                <div className="flex justify-end -mt-2">
+            <div
+                className={cn(
+                    "w-full bg-[--color-surface]",
+                    "rounded-b-2xl shadow-sm",
+                    "px-8 py-10",
+                )}
+            >
+                {/* Header */}
+                <div className="flex flex-col items-center text-center mb-8">
                     <Link
-                        href="/forgot-password"
-                        className={cn(
-                            "text-xs text-[--color-muted]",
-                            "hover:text-[--color-primary] transition-colors duration-200",
-                        )}
+                        href="/"
+                        className="text-2xl font-black tracking-tight"
                     >
-                        Forgot password?
+                        <span className="text-[--color-primary]">Vend</span>
+                        <span className="text-[--color-accent]">mint</span>
                     </Link>
+
+                    {/* Decorative dot */}
+                    <div className="flex items-center gap-1.5 mt-4">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[--color-accent]" />
+                        <div className="w-6 h-1.5 rounded-full bg-[--color-primary]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[--color-accent]" />
+                    </div>
+
+                    <h1 className="text-2xl font-bold text-[--color-text] mt-4">
+                        Welcome back 👋
+                    </h1>
+                    <p className="text-sm text-[--color-muted] mt-1">
+                        Login to manage your store
+                    </p>
                 </div>
 
-                {/* NOTE: Error message shown when login fails */}
-                {error && (
-                    <p className="text-sm text-[--color-error]">{error}</p>
-                )}
+                {/* Form */}
+                <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                    <Input
+                        label="Email Address"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <Input
+                        label="Password"
+                        type="password"
+                        placeholder="Your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
 
-                <Button
-                    type="submit"
-                    fullWidth
-                    loading={loading}
-                    className="mt-2"
-                >
-                    Login
-                </Button>
-            </form>
+                    {/* Forgot password link */}
+                    <div className="flex justify-end -mt-2">
+                        <Link
+                            href="/forgot-password"
+                            className={cn(
+                                "text-xs text-[--color-muted]",
+                                "hover:text-[--color-primary] transition-colors duration-200",
+                            )}
+                        >
+                            Forgot password?
+                        </Link>
+                    </div>
 
-            {/* Footer link */}
-            <p className="text-sm text-[--color-muted] text-center mt-6">
-                Don't have an account?{" "}
-                <Link
-                    href="/signup"
-                    className="text-[--color-primary] font-medium hover:underline"
-                >
-                    Create one free
-                </Link>
-            </p>
+                    {/* Error message */}
+                    {error && (
+                        <p className="text-sm text-[--color-error]">{error}</p>
+                    )}
+
+                    <Button
+                        type="submit"
+                        fullWidth
+                        loading={loading}
+                        className="mt-2"
+                    >
+                        Login
+                    </Button>
+                </form>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3 my-6">
+                    <div className="flex-1 h-px bg-[--color-border]" />
+                    <span className="text-xs text-[--color-muted]">or</span>
+                    <div className="flex-1 h-px bg-[--color-border]" />
+                </div>
+
+                {/* Footer link */}
+                <p className="text-sm text-[--color-muted] text-center">
+                    Don't have an account?{" "}
+                    <Link
+                        href="/signup"
+                        className={cn(
+                            "text-[--color-primary] font-semibold",
+                            "hover:text-[--color-accent] transition-colors duration-200",
+                        )}
+                    >
+                        Create one free →
+                    </Link>
+                </p>
+            </div>
         </div>
     );
 }
