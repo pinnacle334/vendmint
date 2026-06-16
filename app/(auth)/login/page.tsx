@@ -52,7 +52,7 @@ export default function LoginPage(): React.ReactElement {
     return (
         <div className="w-full max-w-md">
             {/* Top accent bar */}
-            <div className="h-1.5 w-full bg-linear-to-r from-bg-primary to-[--color-accent] rounded-t-2xl" />
+            <div className="h-1.5 w-full bg-linear-to-r from-primary to-accent rounded-t-2xl" />
 
             <div
                 className={cn(
