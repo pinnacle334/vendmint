@@ -4,117 +4,153 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-    HomeIcon,
-    ShoppingBagIcon,
-    ClipboardDocumentListIcon,
-    BuildingStorefrontIcon,
-    Cog6ToothIcon,
-    ArrowLeftStartOnRectangleIcon,
+  HomeIcon,
+  ShoppingBagIcon,
+  ClipboardDocumentListIcon,
+  BuildingStorefrontIcon,
+  Cog6ToothIcon,
+  ArrowLeftStartOnRectangleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-// NOTE: Each nav item has a label, href, and icon
 interface NavItem {
-    label: string;
-    href: string;
-    icon: React.ReactElement;
+  label: string;
+  href: string;
+  icon: React.ReactElement;
 }
 
-// Dashboard navigation items
 const navItems: NavItem[] = [
-    {
-        label: "Home",
-        href: "/dashboard",
-        icon: <HomeIcon className="w-5 h-5" />,
-    },
-    {
-        label: "Products",
-        href: "/dashboard/products",
-        icon: <ShoppingBagIcon className="w-5 h-5" />,
-    },
-    {
-        label: "Orders",
-        href: "/dashboard/orders",
-        icon: <ClipboardDocumentListIcon className="w-5 h-5" />,
-    },
-    {
-        label: "My Store",
-        href: "/dashboard/store",
-        icon: <BuildingStorefrontIcon className="w-5 h-5" />,
-    },
-    {
-        label: "Settings",
-        href: "/dashboard/settings",
-        icon: <Cog6ToothIcon className="w-5 h-5" />,
-    },
+  {
+    label: "Home",
+    href: "/dashboard",
+    icon: <HomeIcon className="w-5 h-5" />,
+  },
+  {
+    label: "Products",
+    href: "/dashboard/products",
+    icon: <ShoppingBagIcon className="w-5 h-5" />,
+  },
+  {
+    label: "Orders",
+    href: "/dashboard/orders",
+    icon: <ClipboardDocumentListIcon className="w-5 h-5" />,
+  },
+  {
+    label: "My Store",
+    href: "/dashboard/store",
+    icon: <BuildingStorefrontIcon className="w-5 h-5" />,
+  },
+  {
+    label: "Settings",
+    href: "/dashboard/settings",
+    icon: <Cog6ToothIcon className="w-5 h-5" />,
+  },
 ];
 
-export default function Sidebar(): React.ReactElement {
-    // NOTE: usePathname lets us highlight the active nav item
-    const pathname = usePathname();
+// NOTE: isOpen and onClose control the mobile slide-in drawer behavior.
+// On desktop the sidebar is always visible regardless of these props.
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-    return (
-        <aside
-            className={cn(
-                "hidden md:flex flex-col",
-                "w-60 min-h-screen",
-                "bg-surface",
-                "border-r border-border",
-                "px-3 py-6",
-            )}
-        >
-            {/* Logo */}
-            <Link
-                href="/dashboard"
-                className="text-xl font-bold text-primary px-3 mb-8"
-            >
-                Vendmint
-            </Link>
+export default function Sidebar({
+  isOpen,
+  onClose,
+}: SidebarProps): React.ReactElement {
+  const pathname = usePathname();
 
-            {/* Nav items */}
-            <nav className="flex flex-col gap-1 flex-1">
-                {navItems.map((item) => {
-                    // NOTE: Exact match for dashboard home, prefix match for nested pages
-                    const isActive =
-                        item.href === "/dashboard"
-                            ? pathname === "/dashboard"
-                            : pathname.startsWith(item.href);
+  return (
+    <>
+      {/* NOTE: Overlay behind the drawer on mobile - clicking it closes the sidebar */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className={cn(
+            "fixed inset-0 z-40 bg-black/50",
+            "md:hidden",
+          )}
+        />
+      )}
 
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                "flex items-center gap-3 px-3 py-2.5",
-                                "rounded-lg text-sm font-medium",
-                                "transition-all duration-200",
-                                isActive
-                                    ? "bg-primary text-white"
-                                    : "text-muted hover:bg-border hover:text-text",
-                            )}
-                        >
-                            {item.icon}
-                            {item.label}
-                        </Link>
-                    );
-                })}
-            </nav>
+      <aside
+        className={cn(
+          "flex flex-col",
+          "w-60 min-h-screen",
+          "bg-surface",
+          "border-r border-border",
+          "px-3 py-6",
+          // NOTE: Fixed + slide transform on mobile, static position on desktop
+          "fixed top-0 left-0 z-50 transition-transform duration-300",
+          "md:static md:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        {/* Logo + mobile close button */}
+        <div className="flex items-center justify-between px-3 mb-8">
+          <Link
+            href="/dashboard"
+            className="text-xl font-bold"
+          >
+            <span className="text-primary">Vend</span>
+                    <span className="text-accent">mint</span>
+          </Link>
 
-            {/* Logout button at bottom */}
-            <button
-                // NOTE: onClick will be wired to auth signout later
-                onClick={() => {}}
+          {/* NOTE: Close button only shows on mobile */}
+          <button
+            onClick={onClose}
+            className="md:hidden text-muted hover:text-text cursor-pointer"
+          >
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Nav items */}
+        <nav className="flex flex-col gap-1 flex-1">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                // NOTE: Close the drawer on mobile when a link is tapped
+                onClick={onClose}
                 className={cn(
-                    "flex items-center gap-3 px-3 py-2.5",
-                    "rounded-lg text-sm font-medium",
-                    "text-error",
-                    "hover:bg-error/10",
-                    "transition-all duration-200 cursor-pointer",
-                    "w-full",
+                  "flex items-center gap-3 px-3 py-2.5",
+                  "rounded-lg text-sm font-medium",
+                  "transition-all duration-200",
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-muted hover:bg-border hover:text-text",
                 )}
-            >
-                <ArrowLeftStartOnRectangleIcon className="w-5 h-5" />
-                Logout
-            </button>
-        </aside>
-    );
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Logout button at bottom */}
+        <button
+          onClick={() => {}}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5",
+            "rounded-lg text-sm font-medium",
+            "text-error",
+            "hover:bg-error/10",
+            "transition-all duration-200 cursor-pointer",
+            "w-full",
+          )}
+        >
+          <ArrowLeftStartOnRectangleIcon className="w-5 h-5" />
+          Logout
+        </button>
+      </aside>
+    </>
+  );
 }

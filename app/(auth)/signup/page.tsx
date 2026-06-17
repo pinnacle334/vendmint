@@ -2,15 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 
 export default function SignupPage(): React.ReactElement {
-    const router = useRouter();
-
     // Form state
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
@@ -20,6 +17,9 @@ export default function SignupPage(): React.ReactElement {
     // UI state
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    // NOTE: Tracks whether signup succeeded so we can show the
+    // "check your email" message instead of redirecting
+    const [signupSuccess, setSignupSuccess] = useState(false);
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,9 +62,41 @@ export default function SignupPage(): React.ReactElement {
             return;
         }
 
-        // NOTE: Redirect to dashboard after successful signup
-        router.push("/dashboard");
+        // NOTE: No active session exists yet since email confirmation
+        // is required, so we show a success message instead of
+        // redirecting to the dashboard
+        setSignupSuccess(true);
     };
+
+    // NOTE: Show this screen once signup succeeds, instead of the form
+    if (signupSuccess) {
+        return (
+            <div
+                className={cn(
+                    "w-full max-w-md",
+                    "bg-surface",
+                    "rounded-2xl shadow-sm",
+                    "border border-border",
+                    "p-8",
+                    "flex flex-col items-center text-center gap-3",
+                )}
+            >
+                <span className="text-3xl">📩</span>
+                <h1 className="text-xl font-bold text-text">
+                    Check your email
+                </h1>
+                <p className="text-sm text-muted">
+                    We sent a confirmation link to <strong>{email}</strong>.
+                    Click the link to verify your account, then come back and
+                    log in.
+                </p>
+
+                <Link href="/login" className="mt-4 w-full">
+                    <Button fullWidth>Go to Login</Button>
+                </Link>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -80,7 +112,7 @@ export default function SignupPage(): React.ReactElement {
             <div className="mb-8">
                 <Link href="/" className="text-xl font-bold">
                     <span className="text-primary">Vend</span>
-                        <span className="text-accent">mint</span>
+                    <span className="text-accent">mint</span>
                 </Link>
                 <h1 className="text-2xl font-bold text-text mt-4">
                     Create your account
