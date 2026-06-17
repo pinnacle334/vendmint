@@ -62,7 +62,7 @@ export default function LoginPage(): React.ReactElement {
                 )}
             >
                 {/* Header */}
-                <div className="flex flex-col items-center text-center mb-8">
+                <div className="flex flex-col items-center text-center mb-6">
                     <Link
                         href="/"
                         className="text-2xl font-black tracking-tight"
@@ -81,7 +81,7 @@ export default function LoginPage(): React.ReactElement {
                     <h1 className="text-2xl font-bold text-text mt-4">
                         Welcome back 👋
                     </h1>
-                    <p className="text-sm text-muted mt-1">
+                    <p className="text-sm text-muted mt-3">
                         Login to manage your store
                     </p>
                 </div>
@@ -89,14 +89,14 @@ export default function LoginPage(): React.ReactElement {
                 {/* Form */}
                 <form onSubmit={handleLogin} className="flex flex-col gap-4">
                     <Input
-                        label="Email Address"
+                        label=""
                         type="email"
                         placeholder="you@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     <Input
-                        label="Password"
+                        label=""
                         type="password"
                         placeholder="Your password"
                         value={password}

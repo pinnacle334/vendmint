@@ -78,8 +78,9 @@ export default function SignupPage(): React.ReactElement {
         >
             {/* Header */}
             <div className="mb-8">
-                <Link href="/" className="text-xl font-bold text-primary">
-                    Vendmint
+                <Link href="/" className="text-xl font-bold">
+                    <span className="text-primary">Vend</span>
+                        <span className="text-accent">mint</span>
                 </Link>
                 <h1 className="text-2xl font-bold text-text mt-4">
                     Create your account
