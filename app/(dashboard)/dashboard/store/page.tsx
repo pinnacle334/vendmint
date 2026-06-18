@@ -26,8 +26,8 @@ export default function StoreSetupPage(): React.ReactElement {
 
     // NOTE: Slug availability check state
     const [slugStatus, setSlugStatus] = useState<
-  "idle" | "checking" | "available" | "taken" | "invalid"
->("idle");
+        "idle" | "checking" | "available" | "taken" | "invalid"
+    >("idle");
     // NOTE: Load the seller's existing store (if any) when the page mounts,
     // so this page works for both first-time setup and later editing
     useEffect(() => {
