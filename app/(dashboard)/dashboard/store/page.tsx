@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { cn } from "@/lib/utils";
+import { cn, getEffectivePlan } from "@/lib/utils";
 
 export default function StoreSetupPage(): React.ReactElement {
     const { user } = useAuth();
-    const router = useRouter();
 
     // Form state
     const [storeId, setStoreId] = useState<string | null>(null);
@@ -24,36 +22,16 @@ export default function StoreSetupPage(): React.ReactElement {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
-    // NOTE: Slug availability check state
+    // NOTE: Tracks the seller's effective plan, used to gate slug editing
+    const [plan, setPlan] = useState<"free" | "pro">("free");
+
+    // NOTE: Slug availability check state - only relevant once a Pro
+    // seller is actively editing their slug
     const [slugStatus, setSlugStatus] = useState<
         "idle" | "checking" | "available" | "taken" | "invalid"
     >("idle");
-    // NOTE: Load the seller's existing store (if any) when the page mounts,
-    // so this page works for both first-time setup and later editing
-    useEffect(() => {
-        if (!user) return;
 
-        const loadStore = async () => {
-            const { data } = await supabase
-                .from("stores")
-                .select("*")
-                .eq("owner_id", user.id)
-                .single();
-
-            if (data) {
-                setStoreId(data.id);
-                setName(data.name);
-                setSlug(data.slug);
-                setDescription(data.description || "");
-            }
-
-            setPageLoading(false);
-        };
-
-        loadStore();
-    }, [user]);
-
-    // NOTE: Normalizes whatever the seller types into a valid slug format -
+    // NOTE: Normalizes any text into a valid slug format -
     // lowercase, spaces to hyphens, strips invalid characters
     const normalizeSlug = (value: string): string => {
         return value
@@ -64,14 +42,74 @@ export default function StoreSetupPage(): React.ReactElement {
             .replace(/-+/g, "-");
     };
 
+    // NOTE: Generates a unique slug from the store name by checking the
+    // database and appending a numeric suffix if the base slug is taken
+    const generateUniqueSlug = async (baseName: string): Promise<string> => {
+        const base = normalizeSlug(baseName);
+        let candidate = base;
+        let counter = 2;
+
+        while (true) {
+            const { data } = await supabase
+                .from("stores")
+                .select("id")
+                .eq("slug", candidate)
+                .maybeSingle();
+
+            if (!data) return candidate;
+
+            candidate = `${base}-${counter}`;
+            counter++;
+        }
+    };
+
+    // NOTE: Load the seller's profile (for plan/trial info) and their
+    // existing store (if any) when the page mounts
+    useEffect(() => {
+        if (!user) return;
+
+        const loadData = async () => {
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("plan, trial_ends_at")
+                .eq("id", user.id)
+                .single();
+
+            if (profile) {
+                setPlan(getEffectivePlan(profile.plan, profile.trial_ends_at));
+            }
+
+            const { data: store } = await supabase
+                .from("stores")
+                .select("*")
+                .eq("owner_id", user.id)
+                .single();
+
+            if (store) {
+                setStoreId(store.id);
+                setName(store.name);
+                setSlug(store.slug);
+                setDescription(store.description || "");
+            }
+
+            setPageLoading(false);
+        };
+
+        loadData();
+    }, [user]);
+
+    // NOTE: Pro sellers editing the slug get live normalization + availability checking
     const handleSlugChange = (value: string) => {
         const normalized = normalizeSlug(value);
         setSlug(normalized);
     };
 
-    // NOTE: Debounced slug availability check - waits 500ms after the
-    // seller stops typing before querying the database
     useEffect(() => {
+        // NOTE: Only run the live availability check when a Pro seller is
+        // actively editing - Free sellers never reach this since the field
+        // is disabled, and first-time setup handles slug generation on submit
+        if (plan !== "pro" || !storeId) return;
+
         if (!slug) {
             setSlugStatus("idle");
             return;
@@ -91,8 +129,6 @@ export default function StoreSetupPage(): React.ReactElement {
                 .eq("slug", slug)
                 .maybeSingle();
 
-            // NOTE: If a store with this slug exists and it's not our own
-            // store (relevant when editing), the slug is taken
             if (data && data.id !== storeId) {
                 setSlugStatus("taken");
             } else {
@@ -101,24 +137,24 @@ export default function StoreSetupPage(): React.ReactElement {
         }, 500);
 
         return () => clearTimeout(timeout);
-    }, [slug, storeId]);
+    }, [slug, storeId, plan]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         setSuccess(false);
 
-        if (!name || !slug) {
-            setError("Please fill in your store name and slug");
+        if (!name) {
+            setError("Please enter your store name");
             return;
         }
 
-        if (slugStatus === "taken") {
+        if (plan === "pro" && slugStatus === "taken") {
             setError("This store URL is already taken, please choose another");
             return;
         }
 
-        if (slugStatus === "invalid") {
+        if (plan === "pro" && slugStatus === "invalid") {
             setError("Store URL must be at least 3 characters");
             return;
         }
@@ -126,7 +162,9 @@ export default function StoreSetupPage(): React.ReactElement {
         setLoading(true);
 
         if (storeId) {
-            // NOTE: Store already exists - update it
+            // NOTE: Store already exists - update it. Free sellers' slug
+            // state never changed since the field is disabled for them,
+            // so we just save whatever is currently in `slug`
             const { error: updateError } = await supabase
                 .from("stores")
                 .update({ name, slug, description })
@@ -139,13 +177,17 @@ export default function StoreSetupPage(): React.ReactElement {
                 return;
             }
         } else {
-            // NOTE: No store yet - create one, linked to the logged in seller
+            // NOTE: First-time setup - auto-generate a unique slug from the
+            // store name, regardless of plan, since every seller gets a
+            // working slug on creation, only Pro can change it afterward
+            const generatedSlug = await generateUniqueSlug(name);
+
             const { error: insertError } = await supabase
                 .from("stores")
                 .insert({
                     owner_id: user?.id,
                     name,
-                    slug,
+                    slug: generatedSlug,
                     description,
                 });
 
@@ -155,6 +197,8 @@ export default function StoreSetupPage(): React.ReactElement {
                 setError(insertError.message);
                 return;
             }
+
+            setSlug(generatedSlug);
         }
 
         setSuccess(true);
@@ -196,49 +240,66 @@ export default function StoreSetupPage(): React.ReactElement {
                     onChange={(e) => setName(e.target.value)}
                 />
 
-                {/* Slug field with live preview and availability status */}
-                <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium text-text">
-                        Store URL
-                    </label>
+                {/* Slug field - only shown once a store exists, since first-time
+            setup auto-generates it on submit */}
+                {storeId && (
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium text-text">
+                                Store URL
+                            </label>
+                            {plan === "free" && (
+                                <span className="text-xs text-accent font-medium">
+                                    Pro feature
+                                </span>
+                            )}
+                        </div>
 
-                    <Input
-                        type="text"
-                        placeholder="janes-bakery"
-                        value={slug}
-                        onChange={(e) => handleSlugChange(e.target.value)}
-                    />
+                        <Input
+                            type="text"
+                            value={slug}
+                            disabled={plan === "free"}
+                            onChange={(e) => handleSlugChange(e.target.value)}
+                        />
 
-                    {/* Live URL preview */}
-                    <p className="text-xs text-muted">
-                        Your store will be available at:{" "}
-                        <span className="text-text font-medium">
-                            vendmint.com/store/{slug || "your-store-name"}
-                        </span>
-                    </p>
-
-                    {/* Availability status indicator */}
-                    {slugStatus === "checking" && (
+                        {/* Live URL preview */}
                         <p className="text-xs text-muted">
-                            Checking availability...
+                            Your store is available at:{" "}
+                            <span className="text-text font-medium">
+                                vendmint.com/store/{slug}
+                            </span>
                         </p>
-                    )}
-                    {slugStatus === "available" && (
-                        <p className="text-xs text-success">
-                            ✓ This URL is available
-                        </p>
-                    )}
-                    {slugStatus === "taken" && (
-                        <p className="text-xs text-error">
-                            ✕ This URL is already taken
-                        </p>
-                    )}
-                    {slugStatus === "invalid" && (
-                        <p className="text-xs text-error">
-                            URL must be at least 3 characters
-                        </p>
-                    )}
-                </div>
+
+                        {/* Availability status - only relevant for Pro sellers editing */}
+                        {plan === "pro" && slugStatus === "checking" && (
+                            <p className="text-xs text-muted">
+                                Checking availability...
+                            </p>
+                        )}
+                        {plan === "pro" && slugStatus === "available" && (
+                            <p className="text-xs text-success">
+                                ✓ This URL is available
+                            </p>
+                        )}
+                        {plan === "pro" && slugStatus === "taken" && (
+                            <p className="text-xs text-error">
+                                ✕ This URL is already taken
+                            </p>
+                        )}
+                        {plan === "pro" && slugStatus === "invalid" && (
+                            <p className="text-xs text-error">
+                                URL must be at least 3 characters
+                            </p>
+                        )}
+
+                        {/* Upgrade nudge for Free sellers */}
+                        {plan === "free" && (
+                            <p className="text-xs text-muted">
+                                Upgrade to Pro to customize your store URL.
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {/* Description textarea */}
                 <div className="flex flex-col gap-1.5">
@@ -267,6 +328,13 @@ export default function StoreSetupPage(): React.ReactElement {
                 {success && (
                     <p className="text-sm text-success">
                         Store {storeId ? "updated" : "created"} successfully!
+                        {!storeId && (
+                            <>
+                                {" "}
+                                Your store URL is{" "}
+                                <strong>vendmint.com/store/{slug}</strong>
+                            </>
+                        )}
                     </p>
                 )}
 
