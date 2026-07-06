@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePlan } from "@/hooks/usePlan";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -59,6 +60,7 @@ export default function Sidebar({
   onClose,
 }: SidebarProps): React.ReactElement {
   const pathname = usePathname();
+  const { effectivePlan, isTrialActive, trialDaysLeft } = usePlan();
 
   return (
     <>
@@ -105,6 +107,19 @@ export default function Sidebar({
           </button>
         </div>
 
+        {/* Plan badge */}
+<div className={cn(
+  "mx-3 mb-4 px-3 py-2 rounded-lg text-xs font-medium",
+  effectivePlan === "pro"
+    ? "bg-primary/10 text-primary"
+    : "bg-border text-muted",
+)}>
+  {effectivePlan === "pro" && isTrialActive
+    ? `Pro Trial — ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
+    : effectivePlan === "pro"
+    ? "Pro Plan"
+    : "Free Plan"}
+</div>
         {/* Nav items */}
         <nav className="flex flex-col gap-1 flex-1">
           {navItems.map((item) => {
