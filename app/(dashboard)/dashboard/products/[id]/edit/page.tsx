@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { usePlan } from "@/hooks/usePlan";
 import { supabase } from "@/lib/supabase";
@@ -11,16 +11,27 @@ import { cn } from "@/lib/utils";
 import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import imageCompression from "browser-image-compression";
 
-const FREE_PRODUCT_LIMIT = 6;
-const PRO_PRODUCT_LIMIT = 50;
 const FREE_IMAGE_LIMIT = 1;
 const PRO_IMAGE_LIMIT = 5;
 const MAX_FILE_SIZE_MB = 1;
 
-export default function NewProductPage(): React.ReactElement {
+interface Product {
+    id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    image_url: string | null;
+    is_available: boolean;
+    category: string | null;
+    store_id: string;
+}
+
+export default function EditProductPage(): React.ReactElement {
     const { user } = useAuth();
     const { effectivePlan } = usePlan();
     const router = useRouter();
+    const params = useParams();
+    const productId = params.id as string;
 
     // Form state
     const [name, setName] = useState("");
@@ -30,53 +41,51 @@ export default function NewProductPage(): React.ReactElement {
     const [isAvailable, setIsAvailable] = useState(true);
 
     // Image state
-    const [images, setImages] = useState<File[]>([]);
-    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [existingImageUrl, setExistingImageUrl] = useState<string | null>(
+        null,
+    );
+    const [newImages, setNewImages] = useState<File[]>([]);
+    const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
+    const [removeExistingImage, setRemoveExistingImage] = useState(false);
     const [uploadingImages, setUploadingImages] = useState(false);
 
     // UI state
-    const [storeId, setStoreId] = useState<string | null>(null);
-    const [productCount, setProductCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [pageLoading, setPageLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // NOTE: Determine limits based on plan
-    const productLimit =
-        effectivePlan === "pro" ? PRO_PRODUCT_LIMIT : FREE_PRODUCT_LIMIT;
+    // NOTE: Determine image limit based on plan
     const imageLimit =
         effectivePlan === "pro" ? PRO_IMAGE_LIMIT : FREE_IMAGE_LIMIT;
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || !productId) return;
 
-        const loadData = async () => {
-            // NOTE: Get seller's store
-            const { data: store } = await supabase
-                .from("stores")
-                .select("id")
-                .eq("owner_id", user.id)
+        const loadProduct = async () => {
+            const { data: product, error } = await supabase
+                .from("products")
+                .select("*")
+                .eq("id", productId)
                 .single();
 
-            if (!store) {
+            if (error || !product) {
+                setError("Product not found");
                 setPageLoading(false);
                 return;
             }
 
-            setStoreId(store.id);
-
-            // NOTE: Get current product count to enforce limit
-            const { count } = await supabase
-                .from("products")
-                .select("id", { count: "exact", head: true })
-                .eq("store_id", store.id);
-
-            setProductCount(count || 0);
+            // NOTE: Pre-fill form with existing product data
+            setName(product.name);
+            setDescription(product.description || "");
+            setPrice(String(product.price));
+            setCategory(product.category || "");
+            setIsAvailable(product.is_available);
+            setExistingImageUrl(product.image_url);
             setPageLoading(false);
         };
 
-        loadData();
-    }, [user]);
+        loadProduct();
+    }, [user, productId]);
 
     const handleImageSelect = async (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -84,13 +93,15 @@ export default function NewProductPage(): React.ReactElement {
         const files = Array.from(e.target.files || []);
         if (!files.length) return;
 
-        // NOTE: Enforce image limit per plan
-        const remainingSlots = imageLimit - images.length;
+        // NOTE: Calculate remaining image slots accounting for
+        // existing image and newly added images
+        const existingCount = existingImageUrl && !removeExistingImage ? 1 : 0;
+        const remainingSlots = imageLimit - existingCount - newImages.length;
         const filesToAdd = files.slice(0, remainingSlots);
 
         if (files.length > remainingSlots) {
             setError(
-                `You can only upload ${imageLimit} image${imageLimit === 1 ? "" : "s"} on your current plan.`,
+                `You can only have ${imageLimit} image${imageLimit === 1 ? "" : "s"} on your current plan.`,
             );
         }
 
@@ -99,17 +110,7 @@ export default function NewProductPage(): React.ReactElement {
         const previews: string[] = [];
 
         for (const file of filesToAdd) {
-            // NOTE: Validate file size before compression
-            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024 * 5) {
-                setError(
-                    `${file.name} is too large. Please choose a smaller image.`,
-                );
-                continue;
-            }
-
             try {
-                // NOTE: Compress the image client-side before upload
-                // This ensures fast uploads and stays within storage limits
                 const compressed = await imageCompression(file, {
                     maxSizeMB: MAX_FILE_SIZE_MB,
                     maxWidthOrHeight: 1200,
@@ -117,10 +118,7 @@ export default function NewProductPage(): React.ReactElement {
                 });
 
                 compressedFiles.push(compressed as File);
-
-                // NOTE: Generate preview URL for the compressed image
-                const preview = URL.createObjectURL(compressed);
-                previews.push(preview);
+                previews.push(URL.createObjectURL(compressed));
             } catch {
                 setError(
                     `Failed to process ${file.name}. Please try another image.`,
@@ -128,46 +126,16 @@ export default function NewProductPage(): React.ReactElement {
             }
         }
 
-        setImages((prev) => [...prev, ...compressedFiles]);
-        setImagePreviews((prev) => [...prev, ...previews]);
+        setNewImages((prev) => [...prev, ...compressedFiles]);
+        setNewImagePreviews((prev) => [...prev, ...previews]);
         setUploadingImages(false);
-
-        // NOTE: Reset the input so the same file can be selected again if needed
         e.target.value = "";
     };
 
-    const handleRemoveImage = (index: number) => {
-        // NOTE: Revoke the object URL to free browser memory
-        URL.revokeObjectURL(imagePreviews[index]);
-        setImages((prev) => prev.filter((_, i) => i !== index));
-        setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-    };
-
-    const uploadImages = async (productId: string): Promise<string[]> => {
-        const uploadedUrls: string[] = [];
-
-        for (let i = 0; i < images.length; i++) {
-            const file = images[i];
-            // NOTE: Use a unique path per product and image index
-            const filePath = `${user?.id}/${productId}/${i}_${Date.now()}`;
-
-            const { error } = await supabase.storage
-                .from("product-images")
-                .upload(filePath, file, { upsert: true });
-
-            if (error) {
-                throw new Error(`Failed to upload image: ${error.message}`);
-            }
-
-            // NOTE: Get the public URL for the uploaded image
-            const { data } = supabase.storage
-                .from("product-images")
-                .getPublicUrl(filePath);
-
-            uploadedUrls.push(data.publicUrl);
-        }
-
-        return uploadedUrls;
+    const handleRemoveNewImage = (index: number) => {
+        URL.revokeObjectURL(newImagePreviews[index]);
+        setNewImages((prev) => prev.filter((_, i) => i !== index));
+        setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -184,51 +152,45 @@ export default function NewProductPage(): React.ReactElement {
             return;
         }
 
-        if (!storeId) {
-            setError("Please set up your store before adding products");
-            return;
-        }
-
-        // NOTE: Enforce product limit at submission time, not just UI level
-        // This is our client-side enforcement of the plan limit
-        if (productCount >= productLimit) {
-            setError(
-                `You have reached your ${effectivePlan === "free" ? "Free" : "Pro"} plan product limit of ${productLimit}.`,
-            );
-            return;
-        }
-
         setLoading(true);
 
         try {
-            // NOTE: Insert the product first to get its ID for the image path
-            const { data: product, error: insertError } = await supabase
+            let imageUrl = removeExistingImage ? null : existingImageUrl;
+
+            // NOTE: Upload new images if any were added
+            if (newImages.length > 0) {
+                for (let i = 0; i < newImages.length; i++) {
+                    const file = newImages[i];
+                    const filePath = `${user?.id}/${productId}/${i}_${Date.now()}`;
+
+                    const { error: uploadError } = await supabase.storage
+                        .from("product-images")
+                        .upload(filePath, file, { upsert: true });
+
+                    if (uploadError) throw new Error(uploadError.message);
+
+                    const { data } = supabase.storage
+                        .from("product-images")
+                        .getPublicUrl(filePath);
+
+                    // NOTE: Use first new image as primary if existing was removed
+                    if (i === 0) imageUrl = data.publicUrl;
+                }
+            }
+
+            const { error: updateError } = await supabase
                 .from("products")
-                .insert({
-                    store_id: storeId,
+                .update({
                     name,
                     description: description || null,
                     price: Number(price),
                     category: category || null,
                     is_available: isAvailable,
-                    image_url: null, // NOTE: Will be updated after image upload
+                    image_url: imageUrl,
                 })
-                .select()
-                .single();
+                .eq("id", productId);
 
-            if (insertError) throw new Error(insertError.message);
-
-            // NOTE: Upload images if any were selected
-            if (images.length > 0) {
-                const imageUrls = await uploadImages(product.id);
-
-                // NOTE: Store the first image as the primary image_url
-                // Multiple image support can be added to a separate table later
-                await supabase
-                    .from("products")
-                    .update({ image_url: imageUrls[0] })
-                    .eq("id", product.id);
-            }
+            if (updateError) throw new Error(updateError.message);
 
             router.push("/dashboard/products");
         } catch (err) {
@@ -242,59 +204,23 @@ export default function NewProductPage(): React.ReactElement {
     if (pageLoading) {
         return (
             <div className="flex items-center justify-center py-20">
-                <p className="text-sm text-muted">Loading...</p>
+                <p className="text-sm text-muted">Loading product...</p>
             </div>
         );
     }
 
-    // NOTE: Block access entirely if product limit already reached
-    if (productCount >= productLimit) {
-        return (
-            <div className="flex flex-col gap-6 max-w-2xl">
-                <h1 className="text-2xl font-bold text-text">Add Product</h1>
-                <div
-                    className={cn(
-                        "bg-surface border border-border rounded-2xl p-6",
-                        "flex flex-col items-center text-center gap-3",
-                    )}
-                >
-                    <p className="text-lg font-semibold text-text">
-                        Product limit reached
-                    </p>
-                    <p className="text-sm text-muted max-w-sm">
-                        You have reached your{" "}
-                        {effectivePlan === "free" ? "Free" : "Pro"} plan limit
-                        of {productLimit} products.
-                        {effectivePlan === "free" &&
-                            " Upgrade to Pro to add up to 50 products."}
-                    </p>
-                    {effectivePlan === "free" && (
-                        <Button
-                            variant="outline"
-                            onClick={() => router.push("/dashboard/settings")}
-                        >
-                            Upgrade to Pro
-                        </Button>
-                    )}
-                    <Button
-                        variant="ghost"
-                        onClick={() => router.push("/dashboard/products")}
-                    >
-                        Back to Products
-                    </Button>
-                </div>
-            </div>
-        );
-    }
+    // NOTE: Calculate how many more images can be added
+    const existingCount = existingImageUrl && !removeExistingImage ? 1 : 0;
+    const totalImages = existingCount + newImages.length;
+    const canAddMoreImages = totalImages < imageLimit;
 
     return (
         <div className="flex flex-col gap-6 max-w-2xl">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-text">Add Product</h1>
+                <h1 className="text-2xl font-bold text-text">Edit Product</h1>
                 <p className="text-sm text-muted mt-1">
-                    Fill in the details below to add a new product to your
-                    store.
+                    Update your product details below.
                 </p>
             </div>
 
@@ -306,7 +232,6 @@ export default function NewProductPage(): React.ReactElement {
                     "p-6",
                 )}
             >
-                {/* Product name */}
                 <Input
                     label="Product Name"
                     type="text"
@@ -315,7 +240,6 @@ export default function NewProductPage(): React.ReactElement {
                     onChange={(e) => setName(e.target.value)}
                 />
 
-                {/* Price */}
                 <Input
                     label="Price (₦)"
                     type="number"
@@ -325,7 +249,6 @@ export default function NewProductPage(): React.ReactElement {
                     min="1"
                 />
 
-                {/* Category */}
                 <Input
                     label="Category (optional)"
                     type="text"
@@ -334,7 +257,6 @@ export default function NewProductPage(): React.ReactElement {
                     onChange={(e) => setCategory(e.target.value)}
                 />
 
-                {/* Description */}
                 <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-text">
                         Description (optional)
@@ -356,34 +278,76 @@ export default function NewProductPage(): React.ReactElement {
                     />
                 </div>
 
-                {/* Image upload */}
+                {/* Image management */}
                 <div className="flex flex-col gap-1.5">
                     <div className="flex items-center justify-between">
                         <label className="text-sm font-medium text-text">
                             Product Image{imageLimit > 1 ? "s" : ""}
                         </label>
                         <span className="text-xs text-muted">
-                            {images.length}/{imageLimit} image
-                            {imageLimit === 1 ? "" : "s"}
+                            {totalImages}/{imageLimit}
                         </span>
                     </div>
 
-                    {/* Image previews */}
-                    {imagePreviews.length > 0 && (
+                    {/* Existing image */}
+                    {existingImageUrl && !removeExistingImage && (
+                        <div className="flex items-center gap-3">
+                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-border">
+                                <img
+                                    src={existingImageUrl}
+                                    alt="Current product image"
+                                    className="w-full h-full object-cover"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setRemoveExistingImage(true)}
+                                    className={cn(
+                                        "absolute top-1 right-1",
+                                        "bg-black/50 rounded-full p-0.5",
+                                        "text-white cursor-pointer",
+                                    )}
+                                >
+                                    <XMarkIcon className="w-3 h-3" />
+                                </button>
+                            </div>
+                            <p className="text-xs text-muted">Current image</p>
+                        </div>
+                    )}
+
+                    {/* Removed image notice */}
+                    {existingImageUrl && removeExistingImage && (
+                        <div className="flex items-center gap-2">
+                            <p className="text-xs text-error">
+                                Current image will be removed on save.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setRemoveExistingImage(false)}
+                                className="text-xs text-primary underline cursor-pointer"
+                            >
+                                Undo
+                            </button>
+                        </div>
+                    )}
+
+                    {/* New image previews */}
+                    {newImagePreviews.length > 0 && (
                         <div className="flex flex-wrap gap-3">
-                            {imagePreviews.map((preview, index) => (
+                            {newImagePreviews.map((preview, index) => (
                                 <div
                                     key={index}
                                     className="relative w-24 h-24 rounded-lg overflow-hidden border border-border"
                                 >
                                     <img
                                         src={preview}
-                                        alt={`Preview ${index + 1}`}
+                                        alt={`New image ${index + 1}`}
                                         className="w-full h-full object-cover"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => handleRemoveImage(index)}
+                                        onClick={() =>
+                                            handleRemoveNewImage(index)
+                                        }
                                         className={cn(
                                             "absolute top-1 right-1",
                                             "bg-black/50 rounded-full p-0.5",
@@ -397,8 +361,8 @@ export default function NewProductPage(): React.ReactElement {
                         </div>
                     )}
 
-                    {/* Upload button - hidden when limit reached */}
-                    {images.length < imageLimit && (
+                    {/* Upload area */}
+                    {canAddMoreImages && (
                         <label
                             className={cn(
                                 "flex flex-col items-center justify-center gap-2",
@@ -430,7 +394,6 @@ export default function NewProductPage(): React.ReactElement {
                         </label>
                     )}
 
-                    {/* Pro upgrade nudge for free sellers */}
                     {effectivePlan === "free" && (
                         <p className="text-xs text-muted">
                             Free plan: 1 image per product.{" "}
@@ -473,13 +436,11 @@ export default function NewProductPage(): React.ReactElement {
                     </button>
                 </div>
 
-                {/* Error message */}
                 {error && <p className="text-sm text-error">{error}</p>}
 
-                {/* Actions */}
                 <div className="flex items-center gap-3">
                     <Button type="submit" loading={loading}>
-                        Add Product
+                        Save Changes
                     </Button>
                     <Button
                         type="button"
