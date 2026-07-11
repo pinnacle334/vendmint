@@ -419,18 +419,17 @@ export default function EditProductPage(): React.ReactElement {
                         type="button"
                         onClick={() => setIsAvailable((prev) => !prev)}
                         className={cn(
-                            "w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer",
-                            "relative shrink-0",
-                            isAvailable ? "bg-primary" : "bg-border",
+                            "w-12 h-7 rounded-full transition-colors duration-200 cursor-pointer",
+                            "flex items-center px-1 border-2",
+                            isAvailable
+                                ? "bg-primary border-primary justify-end"
+                                : "bg-transparent border-border justify-start",
                         )}
                     >
                         <span
                             className={cn(
-                                "absolute top-0.5 w-5 h-5 rounded-full bg-white",
-                                "transition-transform duration-200 shadow-sm",
-                                isAvailable
-                                    ? "translate-x-5"
-                                    : "translate-x-0.5",
+                                "w-4 h-4 rounded-full shadow-sm transition-colors duration-200",
+                                isAvailable ? "bg-white" : "bg-border",
                             )}
                         />
                     </button>

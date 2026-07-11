@@ -443,6 +443,7 @@ export default function NewProductPage(): React.ReactElement {
                 </div>
 
                 {/* Availability toggle */}
+                {/* Availability toggle */}
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-text">
@@ -452,25 +453,33 @@ export default function NewProductPage(): React.ReactElement {
                             Customers can only order available products
                         </p>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setIsAvailable((prev) => !prev)}
-                        className={cn(
-                            "w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer",
-                            "relative shrink-0",
-                            isAvailable ? "bg-primary" : "bg-border",
-                        )}
-                    >
-                        <span
-                            className={cn(
-                                "absolute top-0.5 w-5 h-5 rounded-full bg-white",
-                                "transition-transform duration-200 shadow-sm",
-                                isAvailable
-                                    ? "translate-x-5"
-                                    : "translate-x-0.5",
-                            )}
-                        />
-                    </button>
+       {/* Availability toggle */}
+<div className="flex items-center justify-between">
+  <div>
+    <p className="text-sm font-medium text-text">Available for sale</p>
+    <p className="text-xs text-muted mt-0.5">
+      Customers can only order available products
+    </p>
+  </div>
+  <button
+    type="button"
+    onClick={() => setIsAvailable((prev) => !prev)}
+    className={cn(
+      "w-12 h-7 rounded-full transition-colors duration-200 cursor-pointer",
+      "flex items-center px-1 border-2",
+      isAvailable
+        ? "bg-primary border-primary justify-end"
+        : "bg-transparent border-border justify-start",
+    )}
+  >
+    <span
+      className={cn(
+        "w-4 h-4 rounded-full shadow-sm transition-colors duration-200",
+        isAvailable ? "bg-white" : "bg-border",
+      )}
+    />
+  </button>
+</div>
                 </div>
 
                 {/* Error message */}
