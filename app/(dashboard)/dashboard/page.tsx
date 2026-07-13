@@ -9,33 +9,98 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
+interface DashboardStats {
+  totalOrders: number;
+  pendingOrders: number;
+  totalProducts: number;
+  totalRevenue: number;
+}
+
 export default function DashboardHomePage(): React.ReactElement {
   const { user } = useAuth();
   const { effectivePlan, isTrialActive, trialDaysLeft } = usePlan();
 
-  // NOTE: Extract first name from full_name metadata for a friendlier greeting
   const fullName = user?.user_metadata?.full_name as string | undefined;
   const firstName = fullName?.split(" ")[0] || "there";
 
-  // NOTE: Store state - used to conditionally show setup prompt or store summary
   const [store, setStore] = useState<{ name: string; slug: string } | null>(null);
   const [storeLoading, setStoreLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalOrders: 0,
+    pendingOrders: 0,
+    totalProducts: 0,
+    totalRevenue: 0,
+  });
 
   useEffect(() => {
     if (!user) return;
 
-    const checkStore = async () => {
-      const { data } = await supabase
+    const loadData = async () => {
+      // NOTE: Get seller's store
+      const { data: storeData } = await supabase
         .from("stores")
-        .select("name, slug")
+        .select("id, name, slug")
         .eq("owner_id", user.id)
         .single();
 
-      setStore(data || null);
+      if (!storeData) {
+        setStoreLoading(false);
+        return;
+      }
+
+      setStore({ name: storeData.name, slug: storeData.slug });
+
+      // NOTE: Run all stats queries in parallel for performance
+      const [
+        totalOrdersRes,
+        pendingOrdersRes,
+        totalProductsRes,
+        revenueRes,
+      ] = await Promise.all([
+        // Total orders
+        supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("store_id", storeData.id),
+
+        // Pending orders
+        supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("store_id", storeData.id)
+          .eq("payment_status", "pending"),
+
+        // Total products
+        supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("store_id", storeData.id),
+
+        // Total revenue - only from paid orders
+        supabase
+          .from("orders")
+          .select("total_price")
+          .eq("store_id", storeData.id)
+          .eq("payment_status", "paid"),
+      ]);
+
+      // NOTE: Sum up revenue from all paid orders
+      const totalRevenue = (revenueRes.data || []).reduce(
+        (sum, order) => sum + Number(order.total_price),
+        0,
+      );
+
+      setStats({
+        totalOrders: totalOrdersRes.count || 0,
+        pendingOrders: pendingOrdersRes.count || 0,
+        totalProducts: totalProductsRes.count || 0,
+        totalRevenue,
+      });
+
       setStoreLoading(false);
     };
 
-    checkStore();
+    loadData();
   }, [user]);
 
   return (
@@ -106,19 +171,27 @@ export default function DashboardHomePage(): React.ReactElement {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card padding="lg">
           <p className="text-sm text-muted">Total Orders</p>
-          <p className="text-2xl font-bold text-text mt-1">0</p>
+          <p className="text-2xl font-bold text-text mt-1">
+            {stats.totalOrders}
+          </p>
         </Card>
         <Card padding="lg">
           <p className="text-sm text-muted">Pending Orders</p>
-          <p className="text-2xl font-bold text-text mt-1">0</p>
+          <p className="text-2xl font-bold text-text mt-1">
+            {stats.pendingOrders}
+          </p>
         </Card>
         <Card padding="lg">
           <p className="text-sm text-muted">Products</p>
-          <p className="text-2xl font-bold text-text mt-1">0</p>
+          <p className="text-2xl font-bold text-text mt-1">
+            {stats.totalProducts}
+          </p>
         </Card>
         <Card padding="lg">
           <p className="text-sm text-muted">Total Revenue</p>
-          <p className="text-2xl font-bold text-primary mt-1">₦0</p>
+          <p className="text-2xl font-bold text-primary mt-1">
+            ₦{stats.totalRevenue.toLocaleString()}
+          </p>
         </Card>
       </div>
 

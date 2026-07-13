@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePlan } from "@/hooks/usePlan";
+import { useAuth } from "@/context/AuthContext";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -61,6 +62,7 @@ export default function Sidebar({
 }: SidebarProps): React.ReactElement {
   const pathname = usePathname();
   const { effectivePlan, isTrialActive, trialDaysLeft } = usePlan();
+  const { signOut } = useAuth();
 
   return (
     <>
@@ -82,7 +84,6 @@ export default function Sidebar({
           "bg-surface",
           "border-r border-border",
           "px-3 py-6",
-          // NOTE: Fixed + slide transform on mobile, static position on desktop
           "fixed top-0 left-0 z-50 transition-transform duration-300",
           "md:static md:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
@@ -90,12 +91,9 @@ export default function Sidebar({
       >
         {/* Logo + mobile close button */}
         <div className="flex items-center justify-between px-3 mb-8">
-          <Link
-            href="/dashboard"
-            className="text-xl font-bold"
-          >
+          <Link href="/dashboard" className="text-xl font-bold">
             <span className="text-primary">Vend</span>
-                    <span className="text-accent">mint</span>
+            <span className="text-accent">mint</span>
           </Link>
 
           {/* NOTE: Close button only shows on mobile */}
@@ -108,18 +106,21 @@ export default function Sidebar({
         </div>
 
         {/* Plan badge */}
-<div className={cn(
-  "mx-3 mb-4 px-3 py-2 rounded-lg text-xs font-medium",
-  effectivePlan === "pro"
-    ? "bg-primary/10 text-primary"
-    : "bg-border text-muted",
-)}>
-  {effectivePlan === "pro" && isTrialActive
-    ? `Pro Trial — ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
-    : effectivePlan === "pro"
-    ? "Pro Plan"
-    : "Free Plan"}
-</div>
+        <div
+          className={cn(
+            "mx-3 mb-4 px-3 py-2 rounded-lg text-xs font-medium",
+            effectivePlan === "pro"
+              ? "bg-primary/10 text-primary"
+              : "bg-border text-muted",
+          )}
+        >
+          {effectivePlan === "pro" && isTrialActive
+            ? `Pro Trial — ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
+            : effectivePlan === "pro"
+              ? "Pro Plan"
+              : "Free Plan"}
+        </div>
+
         {/* Nav items */}
         <nav className="flex flex-col gap-1 flex-1">
           {navItems.map((item) => {
@@ -132,7 +133,6 @@ export default function Sidebar({
               <Link
                 key={item.href}
                 href={item.href}
-                // NOTE: Close the drawer on mobile when a link is tapped
                 onClick={onClose}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5",
@@ -150,14 +150,14 @@ export default function Sidebar({
           })}
         </nav>
 
-        {/* Logout button at bottom */}
+        {/* NOTE: Logout button - calls signOut from AuthContext which
+            clears the session and redirects to /login */}
         <button
-          onClick={() => {}}
+          onClick={signOut}
           className={cn(
             "flex items-center gap-3 px-3 py-2.5",
             "rounded-lg text-sm font-medium",
-            "text-error",
-            "hover:bg-error/10",
+            "text-error hover:bg-error/10",
             "transition-all duration-200 cursor-pointer",
             "w-full",
           )}
